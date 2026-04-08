@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Marc's Typing Challenge</title>
+    <style>
+        body { background: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; text-align: center; overflow: hidden; }
+        #game-container { position: relative; width: 100%; height: 80vh; border-bottom: 2px solid #334155; }
+        .word { position: absolute; font-size: 24px; font-weight: bold; background: #1e293b; padding: 5px 15px; border-radius: 20px; border: 1px solid #38bdf8; }
+        #input-box { margin-top: 20px; font-size: 30px; padding: 10px; border-radius: 10px; border: none; text-align: center; width: 300px; }
+        #stats { font-size: 20px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>⌨️ Typing Hero Challenge</h1>
+    <div id="stats">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
+    <div id="game-container"></div>
+    <input type="text" id="input-box" autofocus placeholder="Type here...">
+
+    <script>
+        const words = ["LEGO", "AQUARIUM", "PAYROLL", "GUITAR", "CANADA", "GAMER", "FORCE", "PLANTS", "FISH", "WATER", "BRAMPTON"];
+        let score = 0;
+        let lives = 3;
+        const container = document.getElementById('game-container');
+        const inputBox = document.getElementById('input-box');
+
+        function spawnWord() {
+            if (lives <= 0) return;
+            const wordText = words[Math.floor(Math.random() * words.length)];
+            const wordElement = document.createElement('div');
+            wordElement.className = 'word';
+            wordElement.innerText = wordText;
+            wordElement.style.left = Math.random() * (window.innerWidth - 100) + "px";
+            wordElement.style.top = "0px";
+            container.appendChild(wordElement);
+
+            let fall = setInterval(() => {
+                let top = parseInt(wordElement.style.top);
+                if (top > window.innerHeight * 0.7) {
+                    clearInterval(fall);
+                    container.removeChild(wordElement);
+                    lives--;
+                    document.getElementById('lives').innerText = lives;
+                    if (lives === 0) alert("Game Over! Final Score: " + score);
+                } else {
+                    wordElement.style.top = (top + 2) + "px";
+                }
+            }, 30);
+        }
+
+        inputBox.addEventListener('input', () => {
+            const currentWords = document.querySelectorAll('.word');
+            currentWords.forEach(w => {
+                if (w.innerText.toLowerCase() === inputBox.value.toLowerCase()) {
+                    w.remove();
+                    inputBox.value = "";
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                }
+            });
+        });
+
+        setInterval(spawnWord, 2000);
+    </script>
+</body>
+</html>
