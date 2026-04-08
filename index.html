@@ -1,65 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Marc's Typing Challenge</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marc's Typing Hero | Extreme Edition</title>
     <style>
-        body { background: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; text-align: center; overflow: hidden; }
-        #game-container { position: relative; width: 100%; height: 80vh; border-bottom: 2px solid #334155; }
-        .word { position: absolute; font-size: 24px; font-weight: bold; background: #1e293b; padding: 5px 15px; border-radius: 20px; border: 1px solid #38bdf8; }
-        #input-box { margin-top: 20px; font-size: 30px; padding: 10px; border-radius: 10px; border: none; text-align: center; width: 300px; }
-        #stats { font-size: 20px; margin-top: 10px; }
+        :root {
+            --primary: #38bdf8;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --accent: #fbbf24;
+        }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Sidebars */
+        .sidebar {
+            width: 220px;
+            background: var(--card);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        #left-sidebar { border-right: 2px solid #334155; }
+        #right-sidebar { border-left: 2px solid #334155; }
+
+        .stat-box {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+
+        /* Rank Ladder Styles */
+        .rank-item {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            opacity: 0.4;
+            transition: all 0.3s;
+            background: rgba(255,255,255,0.05);
+        }
+        .rank-active {
+            opacity: 1 !important;
+            background: var(--primary) !important;
+            color: #000;
+            font-weight: bold;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Main Game Area */
+        #main-game { flex-grow: 1; position: relative; display: flex; flex-direction: column; }
+        #game-container {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            overflow: hidden;
+        }
+        .word {
+            position: absolute;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 8px 18px;
+            border-radius: 12px;
+            border: 1px solid var(--primary);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        #input-area {
+            height: 120px;
+            background: var(--card);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 2px solid #334155;
+        }
+        #input-box {
+            font-size: 1.8rem;
+            padding: 12px 25px;
+            border-radius: 50px;
+            border: 2px solid var(--primary);
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            width: 350px;
+            outline: none;
+        }
     </style>
 </head>
 <body>
-    <h1>⌨️ Typing Hero Challenge</h1>
-    <div id="stats">Score: <span id="score">0</span> | Lives: <span id="lives">3</span></div>
-    <div id="game-container"></div>
-    <input type="text" id="input-box" autofocus placeholder="Type here...">
+
+    <div id="left-sidebar" class="sidebar">
+        <h2 style="font-size: 1.2rem;">⌨️ Stats</h2>
+        <div class="stat-box">
+            <div class="stat-label">Score</div>
+            <div id="score" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Best</div>
+            <div id="highScore" class="stat-value">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Lives</div>
+            <div id="lives" class="stat-value" style="color: #ef4444;">3</div>
+        </div>
+    </div>
+
+    <div id="main-game">
+        <div id="game-container"></div>
+        <div id="input-area">
+            <input type="text" id="input-box" autofocus placeholder="Type here...">
+        </div>
+    </div>
+
+    <div id="right-sidebar" class="sidebar">
+        <h2 style="font-size: 1.2rem;">🏆 Ranks</h2>
+        <div id="rank-LEGEND" class="rank-item">👑 Typing Legend</div>
+        <div id="rank-WIZARD" class="rank-item">🧙‍♂️ Keyboard Wizard</div>
+        <div id="rank-NINJA" class="rank-item">🥷 Typing Ninja</div>
+        <div id="rank-PRO" class="rank-item">🔥 Pro Gamer</div>
+        <div id="rank-STUDENT" class="rank-item">📚 Fast Learner</div>
+        <div id="rank-NOOB" class="rank-item rank-active">🐣 Keyboard Noob</div>
+    </div>
 
     <script>
-        const words = ["LEGO", "AQUARIUM", "PAYROLL", "GUITAR", "CANADA", "GAMER", "FORCE", "PLANTS", "FISH", "WATER", "BRAMPTON"];
+        const vocabulary = [
+            "experience", "calendar", "adventure", "important", "believe", "different", "mountain", "creature", "together", "imagine",
+            "scientist", "knowledge", "possible", "question", "favorite", "remember", "beautiful", "straight", "strength", "surprise",
+            "complete", "describe", "discover", "electricity", "environment", "fossil", "government", "history", "island", "journey",
+            "library", "measure", "natural", "ocean", "pattern", "planet", "region", "solar", "special", "surface", "weather",
+            "maison", "ecole", "famille", "chien", "chat", "soleil", "manger", "jouer", "pomme", "livre", "ami", "heureux",
+            "LEGO", "AQUARIUM", "FORCE", "CANADA", "BRAMPTON", "NINJAGO", "MINIFIGURE", "TECHNIC"
+        ];
+
         let score = 0;
         let lives = 3;
+        let highScore = localStorage.getItem('typingHighScore') || 0;
+        document.getElementById('highScore').innerText = highScore;
+
         const container = document.getElementById('game-container');
         const inputBox = document.getElementById('input-box');
 
+        function updateRank() {
+            // Remove active class from all
+            document.querySelectorAll('.rank-item').forEach(r => r.classList.remove('rank-active'));
+            
+            if (score >= 1000) document.getElementById('rank-LEGEND').classList.add('rank-active');
+            else if (score >= 750) document.getElementById('rank-WIZARD').classList.add('rank-active');
+            else if (score >= 500) document.getElementById('rank-NINJA').classList.add('rank-active');
+            else if (score >= 250) document.getElementById('rank-PRO').classList.add('rank-active');
+            else if (score >= 100) document.getElementById('rank-STUDENT').classList.add('rank-active');
+            else document.getElementById('rank-NOOB').classList.add('rank-active');
+        }
+
         function spawnWord() {
             if (lives <= 0) return;
-            const wordText = words[Math.floor(Math.random() * words.length)];
+            const wordText = vocabulary[Math.floor(Math.random() * vocabulary.length)];
             const wordElement = document.createElement('div');
             wordElement.className = 'word';
             wordElement.innerText = wordText;
-            wordElement.style.left = Math.random() * (window.innerWidth - 100) + "px";
-            wordElement.style.top = "0px";
+            wordElement.style.left = Math.random() * (container.offsetWidth - 150) + "px";
+            wordElement.style.top = "-50px";
             container.appendChild(wordElement);
 
+            let speed = 1.2 + (score / 200);
             let fall = setInterval(() => {
                 let top = parseInt(wordElement.style.top);
-                if (top > window.innerHeight * 0.7) {
+                if (top > container.offsetHeight) {
                     clearInterval(fall);
-                    container.removeChild(wordElement);
+                    if (wordElement.parentNode) container.removeChild(wordElement);
                     lives--;
                     document.getElementById('lives').innerText = lives;
-                    if (lives === 0) alert("Game Over! Final Score: " + score);
+                    if (lives === 0) { alert("Game Over! Score: " + score); location.reload(); }
                 } else {
-                    wordElement.style.top = (top + 2) + "px";
+                    wordElement.style.top = (top + speed) + "px";
                 }
-            }, 30);
+            }, 20);
         }
 
         inputBox.addEventListener('input', () => {
             const currentWords = document.querySelectorAll('.word');
             currentWords.forEach(w => {
-                if (w.innerText.toLowerCase() === inputBox.value.toLowerCase()) {
+                if (w.innerText.toLowerCase() === inputBox.value.toLowerCase().trim()) {
                     w.remove();
                     inputBox.value = "";
                     score += 10;
                     document.getElementById('score').innerText = score;
+                    updateRank();
+                    
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('typingHighScore', highScore);
+                        document.getElementById('highScore').innerText = highScore;
+                    }
                 }
             });
         });
 
-        setInterval(spawnWord, 2000);
+        setInterval(spawnWord, 1800);
     </script>
 </body>
 </html>
