@@ -72,6 +72,34 @@
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             overflow: hidden;
         }
+
+        /* Game Over Overlay */
+        #game-over {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            text-align: center;
+        }
+        #game-over h2 { font-size: 3rem; color: #ef4444; margin-bottom: 10px; }
+        .final-stat { font-size: 1.5rem; margin: 5px; }
+        #retry-btn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        #retry-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
+
         .word {
             position: absolute;
             font-size: 22px;
@@ -123,7 +151,15 @@
     </div>
 
     <div id="main-game">
-        <div id="game-container"></div>
+        <div id="game-container">
+            <div id="game-over">
+                <h2>GAME OVER</h2>
+                <div class="final-stat" id="final-score">Score: 0</div>
+                <div class="final-stat" id="final-rank">Rank: Noob</div>
+                <p id="funny-msg" style="font-style: italic; color: var(--accent); margin: 20px;"></p>
+                <button id="retry-btn" onclick="location.reload()">TRY AGAIN!</button>
+            </div>
+        </div>
         <div id="input-area">
             <input type="text" id="input-box" autofocus placeholder="Type here...">
         </div>
@@ -151,6 +187,7 @@
 
         let score = 0;
         let lives = 3;
+        let currentRank = "Keyboard Noob 🐣";
         let highScore = localStorage.getItem('typingHighScore') || 0;
         document.getElementById('highScore').innerText = highScore;
 
@@ -158,15 +195,27 @@
         const inputBox = document.getElementById('input-box');
 
         function updateRank() {
-            // Remove active class from all
             document.querySelectorAll('.rank-item').forEach(r => r.classList.remove('rank-active'));
             
-            if (score >= 1000) document.getElementById('rank-LEGEND').classList.add('rank-active');
-            else if (score >= 750) document.getElementById('rank-WIZARD').classList.add('rank-active');
-            else if (score >= 500) document.getElementById('rank-NINJA').classList.add('rank-active');
-            else if (score >= 250) document.getElementById('rank-PRO').classList.add('rank-active');
-            else if (score >= 100) document.getElementById('rank-STUDENT').classList.add('rank-active');
-            else document.getElementById('rank-NOOB').classList.add('rank-active');
+            if (score >= 1000) {
+                document.getElementById('rank-LEGEND').classList.add('rank-active');
+                currentRank = "Typing Legend 👑";
+            } else if (score >= 750) {
+                document.getElementById('rank-WIZARD').classList.add('rank-active');
+                currentRank = "Keyboard Wizard 🧙‍♂️";
+            } else if (score >= 500) {
+                document.getElementById('rank-NINJA').classList.add('rank-active');
+                currentRank = "Typing Ninja 🥷";
+            } else if (score >= 250) {
+                document.getElementById('rank-PRO').classList.add('rank-active');
+                currentRank = "Pro Gamer 🔥";
+            } else if (score >= 100) {
+                document.getElementById('rank-STUDENT').classList.add('rank-active');
+                currentRank = "Fast Learner 📚";
+            } else {
+                document.getElementById('rank-NOOB').classList.add('rank-active');
+                currentRank = "Keyboard Noob 🐣";
+            }
         }
 
         function spawnWord() {
@@ -181,13 +230,14 @@
 
             let speed = 1.2 + (score / 200);
             let fall = setInterval(() => {
+                if (lives <= 0) { clearInterval(fall); wordElement.remove(); return; }
                 let top = parseInt(wordElement.style.top);
                 if (top > container.offsetHeight) {
                     clearInterval(fall);
                     if (wordElement.parentNode) container.removeChild(wordElement);
                     lives--;
                     document.getElementById('lives').innerText = lives;
-                    if (lives === 0) { alert("Game Over! Score: " + score); location.reload(); }
+                    if (lives === 0) endGame();
                 } else {
                     wordElement.style.top = (top + speed) + "px";
                 }
@@ -195,6 +245,7 @@
         }
 
         inputBox.addEventListener('input', () => {
+            if (lives <= 0) return;
             const currentWords = document.querySelectorAll('.word');
             currentWords.forEach(w => {
                 if (w.innerText.toLowerCase() === inputBox.value.toLowerCase().trim()) {
@@ -212,6 +263,22 @@
                 }
             });
         });
+
+        function endGame() {
+            const gameOverScreen = document.getElementById('game-over');
+            const funnyMsg = document.getElementById('funny-msg');
+            
+            document.getElementById('final-score').innerText = "Final Score: " + score;
+            document.getElementById('final-rank').innerText = "Final Rank: " + currentRank;
+            
+            // Set a funny message based on rank
+            if (score < 100) funnyMsg.innerText = "Don't worry, even a LEGO master starts with one brick! Try again!";
+            else if (score < 500) funnyMsg.innerText = "Not bad! You're typing faster than a hungry fish!";
+            else if (score < 1000) funnyMsg.innerText = "Whoa! You've got fingers of fire! Almost a legend!";
+            else funnyMsg.innerText = "YOU ARE UNSTOPPABLE! Are you secretly a robot?!";
+
+            gameOverScreen.style.display = 'flex';
+        }
 
         setInterval(spawnWord, 1800);
     </script>
